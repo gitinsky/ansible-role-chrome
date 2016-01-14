@@ -1,0 +1,17 @@
+- name: check if chrome is installed
+  shell: dpkg-query -s google-chrome-stable
+  failed_when: false
+  register: chrome_status
+  changed_when: "'install ok installed' not in chrome_status.stdout"
+
+- name: download chrome
+  get_url: url=https://dl.google.com/linux/direct/google-chrome-stable_current_{{ 'amd64' if ansible_architecture == 'x86_64' else 'i386' }}.deb
+           dest=/tmp/
+  when: chrome_status.changed
+
+- name: install chrome
+  apt: deb=/tmp/google-chrome-stable_current_{{ 'amd64' if ansible_architecture == 'x86_64' else 'i386' }}.deb
+  when: chrome_status.changed
+
+- name: cleanup deb
+  file: dest=/tmp/google-chrome-stable_current_{{ 'amd64' if ansible_architecture == 'x86_64' else 'i386' }}.deb state=absent
